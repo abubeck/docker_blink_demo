@@ -4,16 +4,17 @@ The source code uses the bcm2835 library to light up LEDs on the blinkt! extensi
 
 # Crosscompiling with docker
 
-Get cross compiling toolchain 
+Setup cross compiling toolchain. Instead of using dockcross directly we use an additional overlay to install possible dependencies or customize the setup.
 
-    docker run --rm dockcross/linux-armv6 > ./dockcross
-    chmod +x dockcross
-
+    cd cross_setup
+    docker build -t myrbcross .
+    docker run --rm myrbcross > ./myrbcross
+    chmod +x myrbcross
 
 Use docker to build project with dockcross
 
-    ./dockcross cmake -Bbuild -H. -GNinja
-    ./dockcross ninja -Cbuild
+    ./cross_setup/myrbcross cmake -Bbuild -H. -GNinja
+    ./cross_setup/myrbcross ninja -Cbuild
 
 Copy binary to raspy and show it is running (substitute YOUR_RP_IP)
 
@@ -23,7 +24,7 @@ On raspberry pi (LEDs should light up)
 
     sudo ./blinktest    
 
-# Packaging applications with docker
+# Packaging applications with docker and transfer to raspberry
 Package binary into Dockerfile and run docker build to build binary (siehe Dockerfile)
 
     docker build -t blinktest .
@@ -54,9 +55,10 @@ Get the docker image on raspy and see the LEDs blink again. (REGISTRY_IP is the 
 * Run the delivery pipeline: compile, build, push, pull, run
 
 
+
+
 # Open questions:
 
-* Configuration of build environment??
 * Automate pull/sync?
 * Host2host transfer of images without registry
 * Move to alpine
