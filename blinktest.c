@@ -6,39 +6,23 @@
 #include <unistd.h>
 #include <time.h>
 #include "blinkt.h"
+#include <math.h>
 
-
-void simple_routine()
-{
-	printf("Running simple routine\n");
-    set_pixel_uint32(0, rgb(0,120,0));
-    show();
-	usleep(1000000);
-	set_pixel_uint32(0, rgb(120,0,0));
-	show();
-	usleep(1000000);
-	clear();
-	show();
-	usleep(1000000);
-	stop();
-}
 
 #define NUM_PIXELS 8
-void complex_routine()
+void larson()
 {
 	unsigned int i,j;
-	time_t start_time, now;
+	struct timespec start_time, now;
 	int REDS[16] = {0, 0, 0, 0, 0, 16, 64, 255, 64, 16, 0, 0, 0, 0, 0, 0};
-	time(&start_time);
+	clock_gettime(CLOCK_MONOTONIC_RAW, &start_time);
 
-	for(i = 0; i < 40; i++)
+	for(i = 0; i < 80; i++)
 	{
-		time(&now);
-		double delta = difftime(now, start_time) * 16;
-		//int delta = ((int)time(NULL) - start_time) * 16;
-		//printf("delta=%f\n", delta);
-		int offset = i; //abs((delta % 16) - NUM_PIXELS);
-		//printf("offset=%d\n", offset);
+		clock_gettime(CLOCK_MONOTONIC_RAW, &now);
+		double delta = (now.tv_sec - start_time.tv_sec) * 1000000 + (now.tv_nsec - start_time.tv_nsec) / 1000; 
+		int idelta = delta/1000000 * 16;;
+		int offset = abs( (idelta % 16) - NUM_PIXELS);
 		for(j = 0; j < NUM_PIXELS; j++)
 		{
 			set_pixel_uint32(j, rgb(REDS[offset + j],0,0));
@@ -56,9 +40,7 @@ int main()
 		printf("Unable to start apa102\n"); 
 		return 1;
 	}
-	complex_routine();
-	//simple_routine();
-	
+	larson();
 
 	return 0;
 }

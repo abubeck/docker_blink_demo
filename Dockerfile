@@ -1,4 +1,5 @@
 FROM resin/rpi-raspbian
+#FROM hypriot/rpi-alpine-scratch
 
 MAINTAINER Alexander Bubeck <alexander.bubeck@zuehlke.com>
 
