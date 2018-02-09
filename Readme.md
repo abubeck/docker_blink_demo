@@ -60,9 +60,6 @@ Now run the (much smaller) image on raspberry pi.
     docker pull iotexperiments.azurecr.io/emx/blink_demo
     docker run -it --cap-add SYS_RAWIO --device /dev/mem iotexperiments.azurecr.io/emx/blink_demo
 
-# 3rd approach: Qemu based crosscompilation with multistage builds
-
-
 Inspect the image sized on the raspberry pi:
 
     docker images   
