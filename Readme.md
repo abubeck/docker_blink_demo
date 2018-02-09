@@ -53,10 +53,12 @@ Compile within cross build container (multistage version)
     rm -rf build
     docker build . -f Dockerfile.multistage -t emx/blink_demo
     docker tag emx/blink_demo iotexperiments.azurecr.io/emx/blink_demo
+    (docker login iotexperiments.azurecr.io)
     docker push iotexperiments.azurecr.io/emx/blink_demo
 
 Now run the (much smaller) image on raspberry pi.
 
+    (docker login iotexperiments.azurecr.io)
     docker pull iotexperiments.azurecr.io/emx/blink_demo
     docker run -it --cap-add SYS_RAWIO --device /dev/mem iotexperiments.azurecr.io/emx/blink_demo
 
