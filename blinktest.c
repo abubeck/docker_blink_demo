@@ -36,11 +36,12 @@ void larson()
 
 int main()
 {
+	printf("Start some crazy blinking ...\n");
 	if (start()){
 		printf("Unable to start apa102\n"); 
 		return 1;
 	}
 	larson();
-
+	printf("Finished animation\n");
 	return 0;
 }

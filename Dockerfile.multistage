@@ -1,0 +1,29 @@
+FROM resin/armhf-alpine:3.6 as builder
+#FROM resin/amd64-alpine:3.6 as builder
+
+WORKDIR /work/
+
+RUN ["cross-build-start"]
+
+MAINTAINER Alexander Bubeck <alexander.bubeck@zuehlke.com>
+
+RUN apk add --update alpine-sdk coreutils cmake linux-headers ninja
+
+COPY . /work/
+
+RUN cmake -Bbuild -H. -GNinja && ninja -Cbuild
+
+RUN objdump -f build/blinktest
+
+RUN ["cross-build-end"]
+
+
+#FROM resin/rpi-raspbian
+FROM hypriot/rpi-alpine-scratch
+
+MAINTAINER Alexander Bubeck <alexander.bubeck@zuehlke.com>
+
+WORKDIR /root/
+COPY --from=builder /work/build/blinktest .
+
+CMD ["./blinktest"]

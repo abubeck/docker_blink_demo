@@ -27,58 +27,41 @@ On raspberry pi (LEDs should light up)
 # Packaging applications with docker and transfer to raspberry
 Package binary into Dockerfile and run docker build to build binary (siehe Dockerfile)
 
-    docker build -t blinktest .
+    docker build -t blinktest_cross cross_target
 
 Check if you have locally the image in the image registry
 
     docker images    
 
-To transfer the image to the raspberry pi you have to use the docker registry. For testing purposes we are using a local docker registy. Spawn the registry and push the image to the registry:
+To transfer the image to the raspberry pi you have to use the docker registry. Login into the registry (here our private azure registry) and push the image to the registry:
 
-    docker run -d -p 5000:5000 --restart=always --name registry registry:2
-    docker tag blinktest localhost:5000/blinktest
-    docker push localhost:5000/blinktest
-
-Setup the registry on the raspberry pi. We have to add the registry to the trusted ones because we have no certificates setup. (REGISTRY_IP is the IP address of your working machine)
-
-   * Create or modify /etc/docker/daemon.json and add
-   { "insecure-registries":["REGISTRY_IP:5000"] }
-   * sudo service docker restart
+    docker login iotexperiments.azurecr.io
+    docker tag blinktest_cross iotexperiments.azurecr.io/emx/blinktest_cross
+    docker push iotexperiments.azurecr.io/emx/blinktest_cross
 
 Get the docker image on raspy and see the LEDs blink again. (REGISTRY_IP is the IP address of your working machine)
 
-    docker pull REGISTRY_IP:5000/blinktest
-    docker run -it --cap-add SYS_RAWIO --device /dev/gpiomem blinktest
+    docker login iotexperiments.azurecr.io
+    docker pull iotexperiments.azurecr.io/emx/blinktest_cross
+    docker run -it --cap-add SYS_RAWIO --device /dev/gpiomem iotexperiments.azurecr.io/emx/blinktest_cross
 
 # 2nd approach: Cross compilation with qemu
 Alternative to the classical cross compilation approach is the compilation within a simulated target architecture using qemu. (see https://resin.io/blog/building-arm-containers-on-any-x86-machine-even-dockerhub/) This allows the packaging of the application into other distributions for which no cross toolchain exists. Here we show the compilation into alpine linux.
 
-Create a cross builder image:
-
-    cd cross_alpine
-    docker build -t alpinecross .
-    cd ..
-
-Compile within cross build container
+Compile within cross build container (multistage version)
 
     rm -rf build
-    docker run -it -v $(pwd):/work alpinecross /bin/sh
-    cd work
-    cross-build-start
-    cmake -Bbuild -H. -GNinja
-    ninja -Cbuild
-    exit
-
-Build alpine image and push to registry. Modify the Dockerfile to base the docker image on alpine. Then:
-
-    docker build -t blinktest2 .
-    docker tag blinktest2 localhost:5000/blinktest2
-    docker push localhost:5000/blinktest2
+    docker build . -f Dockerfile.multistage -t emx/blink_demo
+    docker tag emx/blink_demo iotexperiments.azurecr.io/emx/blink_demo
+    docker push iotexperiments.azurecr.io/emx/blink_demo
 
 Now run the (much smaller) image on raspberry pi.
 
-    docker pull 10.14.1.54:5000/blinktest2
-    docker run -it --cap-add SYS_RAWIO --device /dev/mem 10.14.1.54:5000/blinktest2
+    docker pull iotexperiments.azurecr.io/emx/blink_demo
+    docker run -it --cap-add SYS_RAWIO --device /dev/mem iotexperiments.azurecr.io/emx/blink_demo
+
+# 3rd approach: Qemu based crosscompilation with multistage builds
+
 
 Inspect the image sized on the raspberry pi:
 
@@ -86,5 +69,4 @@ Inspect the image sized on the raspberry pi:
 
 
 # Open questions:
-* Automate + improve pull/sync?
 * Host2host transfer of images without registry
